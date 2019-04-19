@@ -55,7 +55,7 @@ function vrniNazivStranke(strankaId, povratniKlic) {
   pb.all(
     "SELECT Customer.FirstName  || ' ' || Customer.LastName AS naziv \
     FROM    Customer \
-    WHERE   Customer.CustomerId = " + strankaId, 
+    WHERE   Customer.CustomerId = " + strankaId,
     {}, 
     function (napaka, vrstica) {
       if (napaka) {
@@ -174,7 +174,7 @@ var casIzvajanjaKosarice = function(zahteva, povratniKlic) {
     pb.get(
       "SELECT SUM(Milliseconds) / 60000 AS cas \
       FROM    Track \
-      WHERE   Track.TrackId IN (" + zahteva.session.kosarica.join(",") + ")", 
+      WHERE   Track.TrackId IN (" + zahteva.session.kosarica.join(",") + ")",
       function (napaka, vrstica) {
         if (napaka) {
           povratniKlic(false);
@@ -225,7 +225,7 @@ var strankaIzRacuna = function(racunId, callback) {
     "SELECT Customer.* \
     FROM    Customer, Invoice \
     WHERE   Customer.CustomerId = Invoice.CustomerId AND \
-            Invoice.InvoiceId = " + racunId,
+            Invoice.InvoiceId =" + racunId,
     function(napaka, vrstice) {
       console.log(vrstice);
     });
@@ -354,8 +354,9 @@ streznik.get("/prijava", function(zahteva, odgovor) {
         {
           sporocilo: "", 
           seznamStrank: stranke, 
-          seznamRacunov: racuni
-        }
+          seznamRacunov: racuni,
+        },
+          stranke.StRacunov
       );
     });
   });

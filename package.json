@@ -3,13 +3,14 @@
   "description": "2. domača naloga pri predmetu OIS",
   "author": "Dejan Lavbič <Dejan@lavbic.net>",
   "dependencies": {
+    "easy-autocomplete": "^1.3.5",
+    "ejs": "latest",
     "express": "latest",
     "express-session": "latest",
-    "sqlite3": "latest",
-    "ejs": "latest",
     "formidable": "latest",
-    "util": "latest",
-    "md5": "latest"
+    "md5": "latest",
+    "sqlite3": "latest",
+    "util": "latest"
   },
   "private": true
 }

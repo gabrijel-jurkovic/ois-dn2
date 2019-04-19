@@ -55,7 +55,7 @@ function vrniNazivStranke(strankaId, povratniKlic) {
   pb.all(
     "SELECT Customer.FirstName  || ' ' || Customer.LastName AS naziv \
     FROM    Customer \
-    WHERE   Customer.CustomerId = " + strankaId, 
+    WHERE   Customer.CustomerId =  " + strankaId,
     {}, 
     function (napaka, vrstica) {
       if (napaka) {
@@ -69,6 +69,10 @@ function vrniNazivStranke(strankaId, povratniKlic) {
 
 // Prikaz seznama pesmi na strani
 streznik.get("/", function(zahteva, odgovor) {
+    if(zahteva.session.stranka === null || zahteva.session.stranka === undefined){
+        odgovor.redirect('/prijava');
+        return;
+    }
   pb.all(
     "SELECT   Track.TrackId AS id, \
               Track.Name AS pesem, \
@@ -174,7 +178,7 @@ var casIzvajanjaKosarice = function(zahteva, povratniKlic) {
     pb.get(
       "SELECT SUM(Milliseconds) / 60000 AS cas \
       FROM    Track \
-      WHERE   Track.TrackId IN (" + zahteva.session.kosarica.join(",") + ")", 
+      WHERE   Track.TrackId IN (" + zahteva.session.kosarica.join(",") + ")",
       function (napaka, vrstica) {
         if (napaka) {
           povratniKlic(false);
@@ -306,28 +310,47 @@ streznik.post("/prijava", function(zahteva, odgovor) {
   var form = new formidable.IncomingForm();
 
   form.parse(zahteva, function (napaka, polja, datoteke) {
-    pb.run(
-      "INSERT INTO Customer (FirstName, LastName, Company, \
-                            Address, City, State, Country, PostalCode, \
-                            Phone, Fax, Email, SupportRepId) \
-      VALUES  ($fn, $ln, $com, $addr, $city, $state, $country, $pc, $phone, \
-              $fax, $email, $sri)",
-      {}, 
-      function(napaka) {
-        vrniStranke(function(napaka1, stranke) {
-          vrniRacune(function(napaka2, racuni) {
-            odgovor.render(
-              "prijava", 
-              {
-                sporocilo: "", 
-                seznamStrank: stranke, 
-                seznamRacunov: racuni
-              }
-            );
+
+      //server side check for filled all input fields
+      if(polja.FirstName.length===0 || polja.LastName.length===0 || polja.Company.length===0 || polja.Address.length===0 || polja.City.length===0 ||
+          polja.State.length===0 || polja.Country.length===0 || polja.PostalCode.length===0 || polja.Phone.length===0 || polja.Fax.length===0 ||
+          polja.Email.length===0){
+          vrniStranke(function (napaka1,stranke) {
+              vrniRacune(function (napaka2,racuni) {
+
+                  //sending warning for wrong registration
+                  odgovor.render('prijava', {sporocilo: "Prislo je do napake pri registraciji nove stranke. Prosim preverite vnešene podatke in poskusite znova." ,
+                      seznamStrank: stranke, seznamRacunov: racuni});
+              })
+
           });
-        });
+      }else {
+          pb.run(
+              "INSERT INTO Customer (FirstName, LastName, Company, \
+                                    Address, City, State, Country, PostalCode, \
+                                    Phone, Fax, Email, SupportRepId) \
+              VALUES  ($fn, $ln, $com, $addr, $city, $state, $country, $pc, $phone, \
+                      $fax, $email, $sri)",
+              {$fn: polja.FirstName, $ln: polja.LastName, $com: polja.Company, $addr: polja.Address,
+                  $city: polja.City, $state: polja.State, $country: polja.country, $pc: polja.PostalCode,
+                  $phone: polja.Phone, $fax: polja.fax, $email: polja.Email, $sri:9 },
+              function (napaka) {
+                  vrniStranke(function (napaka1, stranke) {
+                      vrniRacune(function (napaka2, racuni) {
+                          odgovor.render(
+                              "prijava",
+                              {
+                                  //writing if registration was successful
+                                  sporocilo: "Stranka " +polja.FirstName+ " " + polja.LastName +" je bila uspešno dodana.",
+                                  seznamStrank: stranke,
+                                  seznamRacunov: racuni
+                              }
+                          );
+                      });
+                  });
+              }
+          );
       }
-    );
   });
 });
 

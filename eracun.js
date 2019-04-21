@@ -290,7 +290,7 @@ streznik.get("/izpisiRacun/:oblika", function (zahteva, odgovor) {
             );
         } else {
             var strankaId = zahteva.session.trenutnaStranka;
-            stranka(strankaId,function (stranka) {
+            stranka(strankaId, function (stranka) {
                 odgovor.setHeader("Content-Type", "text/xml");
                 odgovor.render(
                     "eslog",

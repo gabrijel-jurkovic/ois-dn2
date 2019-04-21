@@ -289,14 +289,17 @@ streznik.get("/izpisiRacun/:oblika", function (zahteva, odgovor) {
                 zato računa ni mogoče pripraviti!</p>"
             );
         } else {
-            odgovor.setHeader("Content-Type", "text/xml");
-            odgovor.render(
-                "eslog",
-                {
-                    vizualiziraj: zahteva.params.oblika == "html" ? true : false,
-                    postavkeRacuna: pesmi
-                }
-            );
+            var strankaId = zahteva.session.trenutnaStranka;
+            stranka(strankaId,function (stranka) {
+                odgovor.setHeader("Content-Type", "text/xml");
+                odgovor.render(
+                    "eslog",
+                    {
+                        vizualiziraj: zahteva.params.oblika == "html" ? true : false,
+                        postavkeRacuna: pesmi, strankaRacun: stranka
+                    }
+                );
+            })
         }
     });
 });

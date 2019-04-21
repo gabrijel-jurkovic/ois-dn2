@@ -333,6 +333,21 @@ streznik.post("/prijava", function (zahteva, odgovor) {
     });
 });
 
+streznik.get("/izbrisiKosarico", function (zahteva, odgovor) {
+
+    if (!zahteva.session.kosarica) {
+       odgovor.send(true);
+    }
+    else{
+        var i=0;
+       while (zahteva.session.kosarica.length!=0) {
+            zahteva.session.kosarica.splice(zahteva.session.kosarica.indexOf(i),1);
+            i++;
+       }
+        odgovor.send(false);
+    }
+});
+
 function prestejRacuneZaStranko(stranka, racuni) {
     var stevec = 0;
     for (var i = 0; i < racuni.length; i++) {

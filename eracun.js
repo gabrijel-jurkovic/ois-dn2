@@ -69,7 +69,7 @@ function vrniNazivStranke(strankaId, povratniKlic) {
 
 // Prikaz seznama pesmi na strani
 streznik.get("/", function (zahteva, odgovor) {
-   if(zahteva.session.trenutnaStranka === null || zahteva.session.trenutnaStranka === undefined) {
+    if (zahteva.session.trenutnaStranka === null || zahteva.session.trenutnaStranka === undefined) {
         odgovor.redirect('/prijava');
         return;
     }
@@ -166,11 +166,11 @@ var pesmiIzKosarice = function (zahteva, povratniKlic) {
 
 // Vrni podrobnosti pesmi v košarici iz trenutne seje vključno s časom izvajanja
 streznik.get("/podrobnosti", function (zahteva, odgovor) {
-    var podrobnosti=Object.create(null);
+    var podrobnosti = Object.create(null);
     var pesmi = zahteva.session.kosarica ? zahteva.session.kosarica.length : 0;
     casIzvajanjaKosarice(zahteva, function (playTime) {
-        podrobnosti.pesmi=pesmi;
-        podrobnosti.cas=playTime;
+        podrobnosti.pesmi = pesmi;
+        podrobnosti.cas = playTime;
         return odgovor.send(podrobnosti);
     });
 });
@@ -297,15 +297,15 @@ streznik.get("/izpisiRacun/:oblika", function (zahteva, odgovor) {
                 zato računa ni mogoče pripraviti!</p>"
             );
         } else {
-            var strankaId=zahteva.session.trenutnaStranka;
-            stranka(strankaId,function (stranka) {
+            var strankaId = zahteva.session.trenutnaStranka;
+            stranka(strankaId, function (stranka) {
                 odgovor.setHeader("Content-Type", "text/xml");
                 odgovor.render(
                     "eslog",
                     {
                         vizualiziraj: zahteva.params.oblika == "html" ? true : false,
                         postavkeRacuna: pesmi,
-                        strankaRacun:stranka
+                        strankaRacun: stranka
                     }
                 );
             })
@@ -355,14 +355,14 @@ streznik.post("/prijava", function (zahteva, odgovor) {
             polja.Email.length === 0) {
             vrniStranke(function (napaka1, stranke) {
                 vrniRacune(function (napaka2, racuni) {
-                    for (var i=0; i < stranke.length; i++) {
+                    for (var i = 0; i < stranke.length; i++) {
                         stranke[i].StRacunov = prestejRacuneZaStranko(stranke[i], racuni);
                     }
                     //sending warning for wrong registration
                     odgovor.render('prijava', {
-                        sporocilo: "Prislo je do napake pri registraciji nove stranke. Prosim preverite vnešene podatke in poskusite znova.",
-                        seznamStrank: stranke, seznamRacunov: racuni,
-                    },
+                            sporocilo: "Prislo je do napake pri registraciji nove stranke. Prosim preverite vnešene podatke in poskusite znova.",
+                            seznamStrank: stranke, seznamRacunov: racuni,
+                        },
                         stranke.StRacunov
                     );
                 })
@@ -383,7 +383,7 @@ streznik.post("/prijava", function (zahteva, odgovor) {
                 function (napaka) {
                     vrniStranke(function (napaka1, stranke) {
                         vrniRacune(function (napaka2, racuni) {
-                            for (var i=0; i < stranke.length; i++) {
+                            for (var i = 0; i < stranke.length; i++) {
                                 stranke[i].StRacunov = prestejRacuneZaStranko(stranke[i], racuni);
                             }
                             odgovor.render(
@@ -407,14 +407,13 @@ streznik.post("/prijava", function (zahteva, odgovor) {
 streznik.get("/izbrisiKosarico", function (zahteva, odgovor) {
 
     if (!zahteva.session.kosarica) {
-       odgovor.send(true);
-    }
-    else{
-        var i=0;
-       while (zahteva.session.kosarica.length!=0) {
-            zahteva.session.kosarica.splice(zahteva.session.kosarica.indexOf(i),1);
+        odgovor.send(true);
+    } else {
+        var i = 0;
+        while (zahteva.session.kosarica.length != 0) {
+            zahteva.session.kosarica.splice(zahteva.session.kosarica.indexOf(i), 1);
             i++;
-       }
+        }
         odgovor.send(false);
     }
 });
@@ -431,23 +430,23 @@ function prestejRacuneZaStranko(stranka, racuni) {
 }
 
 // Prikaz strani za prijavo
-streznik.get("/prijava", function(zahteva, odgovor) {
-  vrniStranke(function (napaka1, stranke) {
-    vrniRacune(function (napaka2, racuni) {
-      for (var i=0; i < stranke.length; i++) {
-        stranke[i].StRacunov = prestejRacuneZaStranko(stranke[i], racuni);
-      }
-      odgovor.render(
-        "prijava",
-        {
-          sporocilo: "",
-          seznamStrank: stranke,
-          seznamRacunov: racuni,
-        },
-          stranke.StRacunov
-      );
+streznik.get("/prijava", function (zahteva, odgovor) {
+    vrniStranke(function (napaka1, stranke) {
+        vrniRacune(function (napaka2, racuni) {
+            for (var i = 0; i < stranke.length; i++) {
+                stranke[i].StRacunov = prestejRacuneZaStranko(stranke[i], racuni);
+            }
+            odgovor.render(
+                "prijava",
+                {
+                    sporocilo: "",
+                    seznamStrank: stranke,
+                    seznamRacunov: racuni,
+                },
+                stranke.StRacunov
+            );
+        });
     });
-  });
 });
 
 // Prikaz nakupovalne košarice za stranko

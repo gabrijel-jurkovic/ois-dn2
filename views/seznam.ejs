@@ -83,7 +83,8 @@
         function premakniPesemIzSeznamaVKosarico(id, naziv, izvajalec, cena, stopnja, dodajVSejo) {
             $("#sporocilo").removeClass("alert alert-danger");
             if (dodajVSejo) {
-                $.get('/kosarica/' + id, function (podatki) { /* Dodaj izbrano pesem v sejo */})
+                $.get('/kosarica/' + id, function (podatki) { /* Dodaj izbrano pesem v sejo */
+                })
 
             }
             $("#kosarica").append(
@@ -192,8 +193,7 @@
                         "napake pri brisanju pesmi</strong> iz košarice! " +
                         "Prosimo poskusite znova.</div>"
                     );
-                }
-                else{
+                } else {
                     location.reload();
                 }
             });

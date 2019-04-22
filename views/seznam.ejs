@@ -66,13 +66,25 @@
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 <script>
     $(document).ready(function () {
+
         function izracunajCenoKosariceZDavkom() {
-            return -1;
+            $.get("/kosarica", function (data) {
+                var vrednost = 0;
+                for (var i = 0; i < data.length; i++) {
+                    vrednost += Math.round(100 * parseFloat(data[i].cena) +
+                        parseFloat(data[i].stopnja) * parseFloat(data[i].cena)) / 100;
+                }
+
+                $("#cena").html(vrednost.toFixed(2));
+            })
         }
 
+
         function premakniPesemIzSeznamaVKosarico(id, naziv, izvajalec, cena, stopnja, dodajVSejo) {
+            $("#sporocilo").removeClass("alert alert-danger");
             if (dodajVSejo) {
                 $.get('/kosarica/' + id, function (podatki) { /* Dodaj izbrano pesem v sejo */})
+
             }
             $("#kosarica").append(
                 "<div id='" + id + "' class='pesem'>\
@@ -86,6 +98,7 @@
           </div>"
             );
             $("#kosarica #" + id).click(function () {
+                $("#sporocilo").removeClass("alert alert-danger");
                 var pesem_kosarica = $(this);
                 $.get("/kosarica/" + id, function (podatki) {
                     /* Odstrani izbrano pesem iz seje */
@@ -136,6 +149,19 @@
         });
 
         function preveriPogojeNakupa() {
+
+            var cena = parseFloat($("#cena").html());
+
+            if (cena < 1) {
+                $("#sporocilo").addClass("alert alert-danger");
+                $("#sporocilo").html("Skupna cena pesmi v košarici mora znašati vsaj 1 €!");
+                return false;
+            } else if (cena > 25) {
+                $("#sporocilo").addClass("alert alert-danger");
+                $("#sporocilo").html("Skupna cena pesmi v košarici ne sme presegati 25 €!");
+                return false;
+            }
+
             return true;
         }
 
@@ -166,6 +192,9 @@
                         "napake pri brisanju pesmi</strong> iz košarice! " +
                         "Prosimo poskusite znova.</div>"
                     );
+                }
+                else{
+                    location.reload();
                 }
             });
         });

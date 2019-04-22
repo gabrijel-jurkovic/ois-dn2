@@ -52,27 +52,23 @@ function davcnaStopnja(izvajalec, zanr) {
 
 // Vrne naziv stranke (ime ter priimek) glede na ID stranke
 function vrniNazivStranke(strankaId, povratniKlic) {
-  pb.all(
-    "SELECT Customer.FirstName  || ' ' || Customer.LastName AS naziv \
-    FROM    Customer \
-    WHERE   Customer.CustomerId = " + strankaId,
-    {},
-    function (napaka, vrstica) {
-      if (napaka) {
-        povratniKlic("");
-      } else {
-        povratniKlic(vrstica.length > 0 ? vrstica[0].naziv : "");
-      }
-    }
-  );
+    pb.all(
+        "SELECT Customer.FirstName  || ' ' || Customer.LastName AS naziv \
+        FROM    Customer \
+        WHERE   Customer.CustomerId = " + strankaId,
+        {},
+        function (napaka, vrstica) {
+            if (napaka) {
+                povratniKlic("");
+            } else {
+                povratniKlic(vrstica.length > 0 ? vrstica[0].naziv : "");
+            }
+        }
+    );
 }
 
 // Prikaz seznama pesmi na strani
 streznik.get("/", function (zahteva, odgovor) {
-    if (zahteva.session.stranka === null || zahteva.session.stranka === undefined) {
-        odgovor.redirect('/prijava');
-        return;
-    }
     pb.all(
         "SELECT   Track.TrackId AS id, \
                   Track.Name AS pesem, \
@@ -166,30 +162,33 @@ var pesmiIzKosarice = function (zahteva, povratniKlic) {
 
 // Vrni podrobnosti pesmi v košarici iz trenutne seje vključno s časom izvajanja
 streznik.get("/podrobnosti", function (zahteva, odgovor) {
+    var podrobnosti=Object.create(null);
     var pesmi = zahteva.session.kosarica ? zahteva.session.kosarica.length : 0;
-    var cas = casIzvajanjaKosarice(zahteva, function () {
-        return cas;
+    casIzvajanjaKosarice(zahteva, function (playTime) {
+        podrobnosti.pesmi=pesmi;
+        podrobnosti.cas=playTime;
+        return odgovor.send(podrobnosti);
     });
 });
 
 // Vrni čas izvajanja pesmi v košarici iz podatkovne baze
-var casIzvajanjaKosarice = function(zahteva, povratniKlic) {
-  if (!zahteva.session.kosarica || zahteva.session.kosarica.length == 0) {
-    povratniKlic(0);
-  } else {
-    pb.get(
-      "SELECT SUM(Milliseconds) / 60000 AS cas \
-      FROM    Track \
-      WHERE   Track.TrackId IN (" + zahteva.session.kosarica.join(",") + ")",
-      function (napaka, vrstica) {
-        if (napaka) {
-          povratniKlic(false);
-        } else {
-          povratniKlic(Math.round(vrstica.cas));
-        }
-      }
-    );
-  }
+var casIzvajanjaKosarice = function (zahteva, povratniKlic) {
+    if (!zahteva.session.kosarica || zahteva.session.kosarica.length == 0) {
+        povratniKlic(0);
+    } else {
+        pb.get(
+            "SELECT SUM(Milliseconds) / 60000 AS cas \
+            FROM    Track \
+            WHERE   Track.TrackId IN (" + zahteva.session.kosarica.join(",") + ")",
+            function (napaka, vrstica) {
+                if (napaka) {
+                    povratniKlic(false);
+                } else {
+                    povratniKlic(Math.round(vrstica.cas));
+                }
+            }
+        );
+    }
 };
 
 streznik.get("/kosarica", function (zahteva, odgovor) {
@@ -226,15 +225,15 @@ var pesmiIzRacuna = function (racunId, povratniKlic) {
 };
 
 // Vrni podrobnosti o stranki iz računa
-var strankaIzRacuna = function(racunId, callback) {
-  pb.all(
-    "SELECT Customer.* \
-    FROM    Customer, Invoice \
-    WHERE   Customer.CustomerId = Invoice.CustomerId AND \
-            Invoice.InvoiceId =" + racunId,
-    function(napaka, vrstice) {
-      console.log(vrstice);
-    });
+var strankaIzRacuna = function (racunId, callback) {
+    pb.all(
+        "SELECT Customer.* \
+        FROM    Customer, Invoice \
+        WHERE   Customer.CustomerId = Invoice.CustomerId AND \
+                Invoice.InvoiceId = " + racunId,
+        function (napaka, vrstice) {
+            console.log(vrstice);
+        });
 };
 
 // Izpis računa v HTML predstavitvi na podlagi podatkov iz baze
@@ -358,6 +357,21 @@ streznik.post("/prijava", function (zahteva, odgovor) {
             );
         }
     });
+});
+
+streznik.get("/izbrisiKosarico", function (zahteva, odgovor) {
+
+    if (!zahteva.session.kosarica) {
+       odgovor.send(true);
+    }
+    else{
+        var i=0;
+       while (zahteva.session.kosarica.length!=0) {
+            zahteva.session.kosarica.splice(zahteva.session.kosarica.indexOf(i),1);
+            i++;
+       }
+        odgovor.send(false);
+    }
 });
 
 function prestejRacuneZaStranko(stranka, racuni) {

@@ -136,45 +136,24 @@
 
 
 
+		function ltrim(str) {
+			if(str == null) return str;
+			return str.replace(/^\s+/g, '');
+		}
 
+		$("#seznamStrank").change(function () {
+			var ime = ltrim(($("#seznamStrank option:selected").text().split(",", [1])).toString());
+			console.log(ime);
 
-		/*$("select.form-control").change(function(){
-			var stranka = $(this).children("option:selected").val();
-			console.log(stranka);
-			console.log("da");
-			alert("You have selected the country - " + stranka);
-		});*/
-
-
-		$("#seznamStrank").on('change', function () {
-			alert($(this).val());
-
-			/*$("#seznamRacunov").forEach(function (racun) {
-				if($(this).val()===$("#seznamRacunov").attr("customerId")){
-					console.log("dobar");
+			var values = $("#seznamRacunov>option").map(function () {
+				if (ime == ltrim(($(this).text().split(" (", [1])).toString())) {
+					$(this).addClass("racun-stranke");
+				} else {
+					$(this).removeClass("racun-stranke");
 				}
-			})*/
+			}).get();
+
 		});
-
-		$("#seznamRacunov").on('change', function () {
-			seznamRacunov.forEach(racun){
-
-			}
-			/*$("#seznamRacunov").forEach(function (racun) {
-				if($(this).val()===$("#seznamRacunov").attr("customerId")){
-					console.log("dobar");
-				}
-			})*/
-		});
-
-
-
-
-
-
-
-
-
 	});
 </script>
 </body>

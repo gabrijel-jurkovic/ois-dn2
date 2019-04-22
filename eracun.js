@@ -162,10 +162,16 @@ var pesmiIzKosarice = function (zahteva, povratniKlic) {
 
 // Vrni podrobnosti pesmi v košarici iz trenutne seje vključno s časom izvajanja
 streznik.get("/podrobnosti", function (zahteva, odgovor) {
+    var podrobnosti=Object.create(null);
     var pesmi = zahteva.session.kosarica ? zahteva.session.kosarica.length : 0;
-    var cas = casIzvajanjaKosarice(zahteva, function () {
+    var cas = casIzvajanjaKosarice(zahteva, function (cas) {
         return cas;
     });
+
+    podrobnosti.pesmi=pesmi;
+    podrobnosti.cas=cas;
+
+    odgovor.send(podrobnosti);
 });
 
 // Vrni čas izvajanja pesmi v košarici iz podatkovne baze

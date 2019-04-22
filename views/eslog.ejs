@@ -332,17 +332,23 @@
                 pesmi++;
             }
         }
+        var vsota = 0;
+        for (var i = 0; i < postavkeRacuna.length; i++) {
+            vsota += postavkeRacuna[i].kolicina * postavkeRacuna[i].cena;
+        }
+
 
         var skupniPopust =
                 (postavkeRacuna.length >= 5 ? 20 : 0) +
                 (pesmi > 1 ? 5 : 0) +
-                (new Date().getMinutes() <= 30 ? 1 : 0);
+                (new Date().getMinutes() <= 30 ? 1 : 0) + ((vsota >= 5 && vsota < 9.5) ? 2 : 0) + ((vsota >= 9.5 && vsota < 14.5) ? 3 : 0) + ((vsota >= 14.5) ? 4.5 : 0);
         for (var zanr in zanri) {
             if (zanri[zanr] >= 3) {
                 skupniPopust += 10;
                 break;
             }
         }
+
 
         var vsotaSPopustiInDavki = 0,
                 vsotaZneskovDdv = 0,

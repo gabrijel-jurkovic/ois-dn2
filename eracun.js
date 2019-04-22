@@ -438,10 +438,10 @@ streznik.get("/prijava", function(zahteva, odgovor) {
         stranke[i].StRacunov = prestejRacuneZaStranko(stranke[i], racuni);
       }
       odgovor.render(
-        "prijava", 
+        "prijava",
         {
-          sporocilo: "", 
-          seznamStrank: stranke, 
+          sporocilo: "",
+          seznamStrank: stranke,
           seznamRacunov: racuni,
         },
           stranke.StRacunov
@@ -455,7 +455,6 @@ streznik.post("/stranka", function (zahteva, odgovor) {
     var form = new formidable.IncomingForm();
     form.parse(zahteva, function (napaka1, polja, datoteke) {
         zahteva.session.trenutnaStranka = parseInt(polja["seznamStrank"], 10);
-        console.log("dobar");
         odgovor.redirect("/");
     });
 });

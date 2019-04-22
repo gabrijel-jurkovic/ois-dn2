@@ -69,6 +69,10 @@ function vrniNazivStranke(strankaId, povratniKlic) {
 
 // Prikaz seznama pesmi na strani
 streznik.get("/", function (zahteva, odgovor) {
+   if(zahteva.session.trenutnaStranka === null || zahteva.session.trenutnaStranka === undefined) {
+        odgovor.redirect('/prijava');
+        return;
+    }
     pb.all(
         "SELECT   Track.TrackId AS id, \
                   Track.Name AS pesem, \
@@ -220,7 +224,15 @@ var pesmiIzRacuna = function (racunId, povratniKlic) {
                       Invoice.InvoiceId = " + racunId +
         ")",
         function (napaka, vrstice) {
-            console.log(vrstice);
+            if (napaka) {
+                povratniKlic(false);
+            } else {
+                for (var i = 0; i < vrstice.length; i++)
+                    vrstice[i].stopnja = davcnaStopnja(
+                        vrstice[i].opisArtikla.split(' (')[1].split(')')[0],
+                        vrstice[i].zanr);
+                povratniKlic(vrstice);
+            }
         });
 };
 
@@ -232,15 +244,31 @@ var strankaIzRacuna = function (racunId, callback) {
         WHERE   Customer.CustomerId = Invoice.CustomerId AND \
                 Invoice.InvoiceId = " + racunId,
         function (napaka, vrstice) {
-            console.log(vrstice);
+            if (napaka) {
+                callback(false);
+            } else {
+                callback(vrstice[0]);
+            }
         });
 };
 
 // Izpis računa v HTML predstavitvi na podlagi podatkov iz baze
 streznik.post("/izpisiRacunBaza", function (zahteva, odgovor) {
     var form = new formidable.IncomingForm();
-
-    odgovor.end();
+    form.parse(zahteva, function (napaka, polja, datoteke) {
+        var racunId = parseInt(polja["seznamRacunov"]);
+        strankaIzRacuna(racunId, function (stranka) {
+            //var racunId=polja.seznamRacunov;
+            pesmiIzRacuna(racunId, function (pesmi) {
+                odgovor.setHeader('content-type', 'text/xml');
+                odgovor.render('eslog', {
+                    vizualiziraj: true,
+                    postavkeRacuna: pesmi,
+                    strankaRacun: stranka
+                })
+            })
+        })
+    });
 });
 
 var stranka = function (strankaId, povratniKlic) {
@@ -248,9 +276,13 @@ var stranka = function (strankaId, povratniKlic) {
         "SELECT Customer.* \
         FROM    Customer \
         WHERE   Customer.CustomerId = $cid",
-        {},
+        {$cid: strankaId},
         function (napaka, vrstica) {
-            povratniKlic(false);
+            if (napaka) {
+                povratniKlic(false);
+            } else {
+                povratniKlic(vrstica);
+            }
         });
 };
 
@@ -265,14 +297,19 @@ streznik.get("/izpisiRacun/:oblika", function (zahteva, odgovor) {
                 zato računa ni mogoče pripraviti!</p>"
             );
         } else {
-            odgovor.setHeader("Content-Type", "text/xml");
-            odgovor.render(
-                "eslog",
-                {
-                    vizualiziraj: zahteva.params.oblika == "html",
-                    postavkeRacuna: pesmi
-                }
-            );
+            var strankaId=zahteva.session.trenutnaStranka;
+            stranka(strankaId,function (stranka) {
+                odgovor.setHeader("Content-Type", "text/xml");
+                odgovor.render(
+                    "eslog",
+                    {
+                        vizualiziraj: zahteva.params.oblika == "html" ? true : false,
+                        postavkeRacuna: pesmi,
+                        strankaRacun:stranka
+                    }
+                );
+            })
+
         }
     });
 });
@@ -318,12 +355,16 @@ streznik.post("/prijava", function (zahteva, odgovor) {
             polja.Email.length === 0) {
             vrniStranke(function (napaka1, stranke) {
                 vrniRacune(function (napaka2, racuni) {
-
+                    for (var i=0; i < stranke.length; i++) {
+                        stranke[i].StRacunov = prestejRacuneZaStranko(stranke[i], racuni);
+                    }
                     //sending warning for wrong registration
                     odgovor.render('prijava', {
                         sporocilo: "Prislo je do napake pri registraciji nove stranke. Prosim preverite vnešene podatke in poskusite znova.",
-                        seznamStrank: stranke, seznamRacunov: racuni
-                    });
+                        seznamStrank: stranke, seznamRacunov: racuni,
+                    },
+                        stranke.StRacunov
+                    );
                 })
 
             });
@@ -336,12 +377,15 @@ streznik.post("/prijava", function (zahteva, odgovor) {
                         $fax, $email, $sri)",
                 {
                     $fn: polja.FirstName, $ln: polja.LastName, $com: polja.Company, $addr: polja.Address,
-                    $city: polja.City, $state: polja.State, $country: polja.country, $pc: polja.PostalCode,
-                    $phone: polja.Phone, $fax: polja.fax, $email: polja.Email, $sri: 9
+                    $city: polja.City, $state: polja.State, $country: polja.Country, $pc: polja.PostalCode,
+                    $phone: polja.Phone, $fax: polja.Fax, $email: polja.Email, $sri: 9
                 },
                 function (napaka) {
                     vrniStranke(function (napaka1, stranke) {
                         vrniRacune(function (napaka2, racuni) {
+                            for (var i=0; i < stranke.length; i++) {
+                                stranke[i].StRacunov = prestejRacuneZaStranko(stranke[i], racuni);
+                            }
                             odgovor.render(
                                 "prijava",
                                 {
@@ -349,7 +393,8 @@ streznik.post("/prijava", function (zahteva, odgovor) {
                                     sporocilo: "Stranka " + polja.FirstName + " " + polja.LastName + " je bila uspešno dodana.",
                                     seznamStrank: stranke,
                                     seznamRacunov: racuni
-                                }
+                                },
+                                stranke.StRacunov
                             );
                         });
                     });
@@ -410,6 +455,7 @@ streznik.post("/stranka", function (zahteva, odgovor) {
     var form = new formidable.IncomingForm();
     form.parse(zahteva, function (napaka1, polja, datoteke) {
         zahteva.session.trenutnaStranka = parseInt(polja["seznamStrank"], 10);
+        console.log("dobar");
         odgovor.redirect("/");
     });
 });

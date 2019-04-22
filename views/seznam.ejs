@@ -67,14 +67,12 @@
 <script>
     $(document).ready(function () {
         function izracunajCenoKosariceZDavkom() {
-
             return -1;
         }
 
         function premakniPesemIzSeznamaVKosarico(id, naziv, izvajalec, cena, stopnja, dodajVSejo) {
             if (dodajVSejo) {
-                $.get('/kosarica/' + id, function (podatki) { /* Dodaj izbrano pesem v sejo */
-                })
+                $.get('/kosarica/' + id, function (podatki) { /* Dodaj izbrano pesem v sejo */})
             }
             $("#kosarica").append(
                 "<div id='" + id + "' class='pesem'>\

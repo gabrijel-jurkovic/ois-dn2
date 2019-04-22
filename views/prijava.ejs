@@ -96,6 +96,7 @@
                             <% seznamStrank.forEach(function(stranka) { %>
                                 <option value="<%= stranka.CustomerId %>">
                                     <%= stranka.FirstName %> <%= stranka.LastName %>, <%= stranka.Email %>
+                                    :: <%= stranka.Country %> (<%= stranka.StRacunov %>)
                                 </option>
                             <% }) %>
                         </select>
@@ -199,7 +200,28 @@
                 $(this).removeClass("ui-corner-top").addClass("ui-corner-all");
             }
         });
-    })
+
+        function ltrim(str) {
+            if (str == null) return str;
+            return str.replace(/^\s+/g, '');
+        }
+
+        $("#seznamStrank").change(function () {
+            var ime = ltrim(($("#seznamStrank option:selected").text().split(",", [1])).toString());
+            console.log(ime);
+
+            var values = $("#seznamRacunov>option").map(function () {
+                if (ime == ltrim(($(this).text().split(" (", [1])).toString())) {
+                    $(this).addClass("racun-stranke");
+                } else {
+                    $(this).removeClass("racun-stranke");
+                }
+            }).get();
+
+        });
+
+
+    });
 </script>
 </body>
 </html>

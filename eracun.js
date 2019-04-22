@@ -52,19 +52,19 @@ function davcnaStopnja(izvajalec, zanr) {
 
 // Vrne naziv stranke (ime ter priimek) glede na ID stranke
 function vrniNazivStranke(strankaId, povratniKlic) {
-    pb.all(
-        "SELECT Customer.FirstName  || ' ' || Customer.LastName AS naziv \
-        FROM    Customer \
-        WHERE   Customer.CustomerId =  " + strankaId,
-        {},
-        function (napaka, vrstica) {
-            if (napaka) {
-                povratniKlic("");
-            } else {
-                povratniKlic(vrstica.length > 0 ? vrstica[0].naziv : "");
-            }
-        }
-    );
+  pb.all(
+    "SELECT Customer.FirstName  || ' ' || Customer.LastName AS naziv \
+    FROM    Customer \
+    WHERE   Customer.CustomerId = " + strankaId,
+    {},
+    function (napaka, vrstica) {
+      if (napaka) {
+        povratniKlic("");
+      } else {
+        povratniKlic(vrstica.length > 0 ? vrstica[0].naziv : "");
+      }
+    }
+  );
 }
 
 // Prikaz seznama pesmi na strani
@@ -173,23 +173,23 @@ streznik.get("/podrobnosti", function (zahteva, odgovor) {
 });
 
 // Vrni čas izvajanja pesmi v košarici iz podatkovne baze
-var casIzvajanjaKosarice = function (zahteva, povratniKlic) {
-    if (!zahteva.session.kosarica || zahteva.session.kosarica.length == 0) {
-        povratniKlic(0);
-    } else {
-        pb.get(
-            "SELECT SUM(Milliseconds) / 60000 AS cas \
-            FROM    Track \
-            WHERE   Track.TrackId IN (" + zahteva.session.kosarica.join(",") + ")",
-            function (napaka, vrstica) {
-                if (napaka) {
-                    povratniKlic(false);
-                } else {
-                    povratniKlic(Math.round(vrstica.cas));
-                }
-            }
-        );
-    }
+var casIzvajanjaKosarice = function(zahteva, povratniKlic) {
+  if (!zahteva.session.kosarica || zahteva.session.kosarica.length == 0) {
+    povratniKlic(0);
+  } else {
+    pb.get(
+      "SELECT SUM(Milliseconds) / 60000 AS cas \
+      FROM    Track \
+      WHERE   Track.TrackId IN (" + zahteva.session.kosarica.join(",") + ")",
+      function (napaka, vrstica) {
+        if (napaka) {
+          povratniKlic(false);
+        } else {
+          povratniKlic(Math.round(vrstica.cas));
+        }
+      }
+    );
+  }
 };
 
 streznik.get("/kosarica", function (zahteva, odgovor) {
@@ -226,15 +226,15 @@ var pesmiIzRacuna = function (racunId, povratniKlic) {
 };
 
 // Vrni podrobnosti o stranki iz računa
-var strankaIzRacuna = function (racunId, callback) {
-    pb.all(
-        "SELECT Customer.* \
-        FROM    Customer, Invoice \
-        WHERE   Customer.CustomerId = Invoice.CustomerId AND \
-                Invoice.InvoiceId = " + racunId,
-        function (napaka, vrstice) {
-            console.log(vrstice);
-        });
+var strankaIzRacuna = function(racunId, callback) {
+  pb.all(
+    "SELECT Customer.* \
+    FROM    Customer, Invoice \
+    WHERE   Customer.CustomerId = Invoice.CustomerId AND \
+            Invoice.InvoiceId =" + racunId,
+    function(napaka, vrstice) {
+      console.log(vrstice);
+    });
 };
 
 // Izpis računa v HTML predstavitvi na podlagi podatkov iz baze
@@ -372,22 +372,23 @@ function prestejRacuneZaStranko(stranka, racuni) {
 }
 
 // Prikaz strani za prijavo
-streznik.get("/prijava", function (zahteva, odgovor) {
-    vrniStranke(function (napaka1, stranke) {
-        vrniRacune(function (napaka2, racuni) {
-            for (var i = 0; i < stranke.length; i++) {
-                stranke[i].StRacunov = prestejRacuneZaStranko(stranke[i], racuni);
-            }
-            odgovor.render(
-                "prijava",
-                {
-                    sporocilo: "",
-                    seznamStrank: stranke,
-                    seznamRacunov: racuni
-                }
-            );
-        });
+streznik.get("/prijava", function(zahteva, odgovor) {
+  vrniStranke(function (napaka1, stranke) {
+    vrniRacune(function (napaka2, racuni) {
+      for (var i=0; i < stranke.length; i++) {
+        stranke[i].StRacunov = prestejRacuneZaStranko(stranke[i], racuni);
+      }
+      odgovor.render(
+        "prijava", 
+        {
+          sporocilo: "", 
+          seznamStrank: stranke, 
+          seznamRacunov: racuni,
+        },
+          stranke.StRacunov
+      );
     });
+  });
 });
 
 // Prikaz nakupovalne košarice za stranko
